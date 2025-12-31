@@ -70,7 +70,7 @@ funcp sbasCompile(FILE* f) {
 
   mprotectRes = make_buffer_executable(code, MAX_CODE_SIZE);
   if (mprotectRes == -1) {
-    fprintf(stderr, "sbasCompile: failed to make_buffer_executable\n");
+    fprintf(stderr, "sbasCompile: failed to make SBas code buffer executable!\n");
     goto on_error;
   }
 

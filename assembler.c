@@ -132,7 +132,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
     }
 
     if (line > MAX_LINES) {
-      fprintf(stderr, "sbasCompile: the provided SBas file exceeds MAX_LINES (%d)!\n", MAX_LINES);
+      fprintf(stderr, "sbasAssemble: the provided SBas file exceeds MAX_LINES (%d)!\n", MAX_LINES);
       return -1;
     }
 
@@ -144,7 +144,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
         Operand returnSymbol = {0};
 
         if (sscanf(lineBuffer, "ret %c%d", &returnSymbol.type, &returnSymbol.value) != 2 || (returnSymbol.type != 'v' && returnSymbol.type != '$')) {
-          compilationError("sbasCompile: invalid 'ret' command: expected 'ret <var|$int>", line);
+          compilationError("sbasAssemble: invalid 'ret' command: expected 'ret <var|$int>", line);
           return -1;
         }
 
@@ -173,18 +173,18 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
         char separator;
 
         if (sscanf(lineBuffer, "v%d %c", &destId, &separator) != 2) {
-          compilationError("sbasCompile: invalid command: expected attribution (vX: varpc) or arithmetic operation (vX = varc op varc)", line);
+          compilationError("sbasAssemble: invalid command: expected attribution (vX: varpc) or arithmetic operation (vX = varc op varc)", line);
           return -1;
         }
 
         if (destId < 1 || destId > 5) {
-          snprintf(errorMsgBuffer, BUFFER_SIZE, "sbasCompile: invalid local variable index %d. Only v1 through v5 are allowed.", destId);
+          snprintf(errorMsgBuffer, BUFFER_SIZE, "sbasAssemble: invalid local variable index %d. Only v1 through v5 are allowed.", destId);
           compilationError(errorMsgBuffer, line);
           return -1;
         }
 
         if (separator != ':' && separator != '=') {
-          snprintf(errorMsgBuffer, BUFFER_SIZE, "sbasCompile: invalid operator %c. Only attribution (:) and arithmetic operation (=) are supported.", separator);
+          snprintf(errorMsgBuffer, BUFFER_SIZE, "sbasAssemble: invalid operator %c. Only attribution (:) and arithmetic operation (=) are supported.", separator);
           compilationError(errorMsgBuffer, line);
           return -1;
         }
@@ -198,7 +198,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
           Operand source = {0};
 
           if (sscanf(lineBuffer, "v%d : %c%d", &destId, &source.type, &source.value) != 3) {
-            compilationError("sbasCompile: invalid attribution: expected 'vX: <vX|pX|$num>'", line);
+            compilationError("sbasAssemble: invalid attribution: expected 'vX: <vX|pX|$num>'", line);
             return -1;
           }
 
@@ -211,12 +211,12 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
           char remaining[BUFFER_SIZE] = {0};  // used in scanset to detect extra operands/operators
 
           if (sscanf(lineBuffer, "v%d = %c%d %c %c%d %127[^\n]", &destId, &lhs.type, &lhs.value, &operator, &rhs.type, &rhs.value, remaining) != 6) {
-            compilationError("sbasCompile: invalid arithmetic operation: expected 'vX = <vX|$num> op <vX|$num>'", line);
+            compilationError("sbasAssemble: invalid arithmetic operation: expected 'vX = <vX|$num> op <vX|$num>'", line);
             return -1;
           }
 
           if (operator != '+' && operator != '-' && operator != '*') {
-            snprintf(errorMsgBuffer, BUFFER_SIZE, "sbasCompile: invalid arithmetic operation %c. Only addition (+), subtraction (-), and multiplication (*) allowed.", operator);
+            snprintf(errorMsgBuffer, BUFFER_SIZE, "sbasAssemble: invalid arithmetic operation %c. Only addition (+), subtraction (-), and multiplication (*) allowed.", operator);
             compilationError(errorMsgBuffer, line);
             return -1;
           }
@@ -232,7 +232,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
         unsigned targetLine;
 
         if (sscanf(lineBuffer, "iflez v%d %u", &variableIndex, &targetLine) != 2) {
-          compilationError("sbasCompile: invalid 'iflez' command: expected 'iflez vX line'", line);
+          compilationError("sbasAssemble: invalid 'iflez' command: expected 'iflez vX line'", line);
           return -1;
         }
 
@@ -256,7 +256,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
         break;
       }
       default: {
-        compilationError("sbasCompile: unknown SBas command", line);
+        compilationError("sbasAssemble: unknown SBas command", line);
         return -1;
       }
     }
@@ -264,7 +264,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
   }
 
   if (!retFound) {
-    fprintf(stderr, "sbasCompile: SBas function doesn't include 'ret'. Aborting!\n");
+    fprintf(stderr, "sbasAssemble: SBas function doesn't include 'ret'. Aborting!\n");
     return -1;
   }
 
