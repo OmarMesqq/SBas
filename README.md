@@ -14,9 +14,9 @@ SBas features exactly five local variables named `v1` through `v5`:
 ```
 var := <v1 | v2 | v3 | v4 | v5>
 ```
-These can be assigned values with the following expression:
+These can be attributed values with the following syntax:
 ```
-var : <pY | var | $snum>
+att:= var : <pY | var | $snum>
 ```
 
 where:
@@ -27,7 +27,7 @@ Currently, SBas supports only 3 parameters (`p1`, `p2`, and `p3`).
 ### Expressions
 An SBas expression is the 2-arity function that modifies a local variable:
 ```
-var = <var | $snum> op <var | $snum>
+expr:= var = <var | $snum> op <var | $snum>
 ```
 
 where `op` is `< + | - | * >`.
