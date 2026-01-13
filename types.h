@@ -112,10 +112,6 @@ typedef struct {
    */
   int imm_mov_rd;
 
-  /**
-   * Treats the instruction to be generated as an arithmetic operation
-   */
-  unsigned char isArithmOp;
 
   /**
    * Treats the instruction to be generated as a comparison between values.

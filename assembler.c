@@ -496,7 +496,6 @@ static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* d
     arithmeticOperation.reg = srcRegCode;
     arithmeticOperation.rm = dstRegCode;
   } else if (rhs->type == '$') {
-    arithmeticOperation.isArithmOp = 1;
     arithmeticOperation.rm = dstRegCode;
     arithmeticOperation.use_imm = 1;
     arithmeticOperation.immediate = rhs->value;
