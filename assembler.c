@@ -24,14 +24,12 @@ typedef struct {
 
 static void emit_instruction(unsigned char code[], int* pos, Instruction* inst);
 static void emit_prologue(unsigned char code[], int* pos);
-static void save_callee_saved_registers(unsigned char code[], int* pos);
 static void emit_return_value(unsigned char code[], int* pos, Operand* returnSymbol);
 static void emit_return(unsigned char code[], int* pos, Operand* returnSymbol, char* retFound, int* cleanupOffset);
 static void emit_attribution(unsigned char code[], int* pos, Operand* dest, Operand* source);
 static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* dest, Operand* lhs, char op, Operand* rhs);
 static void emit_cmp(unsigned char code[], int* pos, Operand* op);
 static void emit_near_jump(unsigned char code[], int* pos);
-static void restore_callee_saved_registers(unsigned char code[], int* pos);
 static void emit_epilogue(unsigned char code[], int* pos);
 static int get_hardware_reg_index(char type, int idx);
 
@@ -120,7 +118,6 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
   int cleanupOffset = 0;                   // position in buffer where the stack cleanup routine starts
 
   emit_prologue(code, &pos);
-  save_callee_saved_registers(code, &pos);
 
   while (fgets(lineBuffer, sizeof(lineBuffer), f)) {
     trimLeadingSpaces(lineBuffer);
@@ -335,103 +332,6 @@ static void emit_return_value(unsigned char code[], int* pos, Operand* returnSym
 }
 
 /**
- * Decrements the stack pointer by 48 bytes and saves the initial values
- * of the callee-saved registers in the stack frame.
- *
- * Since SBas local variables (v1 through v5) are mapped to callee-saved
- * registers, the latter's initial values have to be saved for later restoration
- * as to comply with the System V ABI.
- *
- * The extra 8 bytes may be unused, but are crucial as they guarantee the stack
- * is aligned at a 16-byte boundary (another ABI requirement)
- */
-static void save_callee_saved_registers(unsigned char code[], int* pos) {
-  // subq $48, %rsp
-  Instruction decrementStackPtr = {0};
-  decrementStackPtr.opcode = OP_IMM8_ARITHM_OP;
-  decrementStackPtr.is_64bit = 1;
-  decrementStackPtr.use_modrm = 1;
-  decrementStackPtr.mod = MOD_REGISTER_DIRECT;
-  decrementStackPtr.reg = EXT_SUB;
-  decrementStackPtr.rm = REG_RSP;
-  decrementStackPtr.use_imm = 1;
-  decrementStackPtr.imm_size = 1;
-  decrementStackPtr.immediate = 48;
-  emit_instruction(code, pos, &decrementStackPtr);
-
-  Instruction movRegToStack = {0};
-  movRegToStack.opcode = OP_MOV_REG_TO_RM;
-  movRegToStack.is_64bit = 1;
-  movRegToStack.use_disp = 1;
-  movRegToStack.use_modrm = 1;
-  movRegToStack.mod = MOD_REG_PLUS_DISP8;
-  movRegToStack.rm = REG_RBP;
-
-  // movq %rbx, -8(%rbp)
-  movRegToStack.reg = REG_RBX;
-  movRegToStack.displacement = -8;
-  emit_instruction(code, pos, &movRegToStack);
-
-  // movq %r12, -16(%rbp)
-  movRegToStack.reg = REG_R12;
-  movRegToStack.displacement = -16;
-  emit_instruction(code, pos, &movRegToStack);
-
-  // movq %r13, -24(%rbp)
-  movRegToStack.reg = REG_R13;
-  movRegToStack.displacement = -24;
-  emit_instruction(code, pos, &movRegToStack);
-
-  // movq %r14, -32(%rbp)
-  movRegToStack.reg = REG_R14;
-  movRegToStack.displacement = -32;
-  emit_instruction(code, pos, &movRegToStack);
-
-  // movq %r15, -40(%rbp)
-  movRegToStack.reg = REG_R15;
-  movRegToStack.displacement = -40;
-  emit_instruction(code, pos, &movRegToStack);
-}
-
-/**
- * Restores callee-saved registers values stored in the stack frame
- */
-static void restore_callee_saved_registers(unsigned char code[], int* pos) {
-  Instruction movFromStackToReg = {0};
-  movFromStackToReg.opcode = OP_MOV_RM_TO_REG;
-  movFromStackToReg.is_64bit = 1;
-  movFromStackToReg.use_disp = 1;
-  movFromStackToReg.use_modrm = 1;
-  movFromStackToReg.mod = MOD_REG_PLUS_DISP8;
-  movFromStackToReg.rm = REG_RBP;
-
-  // movq -8(%rbp), %rbx
-  movFromStackToReg.reg = REG_RBX;
-  movFromStackToReg.displacement = -8;
-  emit_instruction(code, pos, &movFromStackToReg);
-
-  // movq -16(%rbp), %r12
-  movFromStackToReg.reg = REG_R12;
-  movFromStackToReg.displacement = -16;
-  emit_instruction(code, pos, &movFromStackToReg);
-
-  // movq -24(%rbp), %r13
-  movFromStackToReg.reg = REG_R13;
-  movFromStackToReg.displacement = -24;
-  emit_instruction(code, pos, &movFromStackToReg);
-
-  // movq -32(%rbp), %r14
-  movFromStackToReg.reg = REG_R14;
-  movFromStackToReg.displacement = -32;
-  emit_instruction(code, pos, &movFromStackToReg);
-
-  // movq -40(%rbp), %r15
-  movFromStackToReg.reg = REG_R15;
-  movFromStackToReg.displacement = -40;
-  emit_instruction(code, pos, &movFromStackToReg);
-}
-
-/**
  * Undoes the current stack frame: emits leave and ret
  */
 static void emit_epilogue(unsigned char code[], int* pos) {
@@ -464,7 +364,6 @@ static void emit_return(unsigned char code[], int* pos, Operand* returnSymbol, c
   if (!*retFound) {
     *retFound = 1;
     *cleanupOffset = *pos;  // stack cleanup starts here: we'll write cleanup bytes next up
-    restore_callee_saved_registers(code, pos);
     emit_epilogue(code, pos);
   }
 }
@@ -690,15 +589,15 @@ static int get_hardware_reg_index(char type, int idx) {
   if (type == 'v') {
     switch (idx) {
       case 1:
-        return REG_RBX;
+        return REG_RCX;
       case 2:
-        return REG_R12;
+        return REG_R8;
       case 3:
-        return REG_R13;
+        return REG_R9;
       case 4:
-        return REG_R14;
+        return REG_R10;
       case 5:
-        return REG_R15;
+        return REG_R11;
       default:
         fprintf(stderr, "get_hardware_reg_index: invalid variable index %c\n", idx);
         return -1;
