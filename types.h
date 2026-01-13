@@ -30,11 +30,7 @@ typedef struct {
 } RelocationTable;
 
 /**
- * @brief An abstraction of a x86-64 machine code instruction:
- *
- * it serves like a "filling form" for the callers of the `emit_instruction` function,
- * abstracting away the required bit-packing for the REX Prefix, ModRM,
- * SIB, and displacement bytes.
+ * An abstraction of a x86-64 machine code instruction
  */
 typedef struct {
   /** The base operation code
@@ -44,8 +40,8 @@ typedef struct {
   unsigned int opcode;
 
   /**
-   * If true, emits the REX.W prefix (0x48).
-   * Used to promote 32-bit operations to 64-bit.
+   * If true, emits the REX.W prefix.
+   * Promotes 32-bit operations to 64-bit.
    */
   unsigned char is_64bit;
 
@@ -56,35 +52,22 @@ typedef struct {
 
   /**
    * Bits 7-6 of ModRM. Sets up the addressing mode.
-   * In SBas two modes are used:
-   * - 3 (11): Register-Direct
-   * - 1 (01): Memory + 8-bit Displacement
    */
   unsigned char mod;
 
   /**
-   * Bits 5-3 of ModRM. This field is overloaded in x86:
-   * 1. Used for destination register
-   * 2. Used for opcode extension
+   * Bits 5-3 of ModRM. This field is sometimes overloaded in x86-64.
+   * It can be used for:
+   * 1. destination register
+   * 2. opcode extension
    */
   unsigned char reg;
 
   /**
    * Bits 2-0 of ModRM.
-   * Specifies either the source register
-   * or the base register for memory access
+   * Specifies source register of the operation
    */
   unsigned char rm;
-
-  /**
-   * Enables emission of a displacement byte after the ModR/M byte.
-   */
-  unsigned char use_disp;
-
-  /**
-   * The small offset added to the base address stored in a register, for instance -8(%rbp)
-   */
-  signed char displacement;
 
   /**
    * Enables emission of immediate bytes at the end of an instruction.
@@ -111,7 +94,6 @@ typedef struct {
    * The register ID to be added to the base opcode (for `is_imm_mov`).
    */
   int imm_mov_rd;
-
 
   /**
    * Treats the instruction to be generated as a comparison between values.

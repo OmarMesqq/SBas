@@ -58,10 +58,6 @@ typedef enum {
 typedef enum {
   // (11) Both operands are registers. Used for variables
   MOD_REGISTER_DIRECT = 3,
-
-  // NOTE: currently unused. SBas keeps all variables in registers.
-  // (01) Memory access: (register + signed byte). Used for stack frame offsets
-  MOD_REG_PLUS_DISP8 = 1,
 } Mod;
 
 /**
@@ -699,11 +695,6 @@ static void emit_instruction(unsigned char code[], int* pos, Instruction* inst) 
     modrm |= (inst->rm & 7);          // keep `rm`'s 3 lower bits in their exact spot: 2, 1, 0
 
     code[(*pos)++] = modrm;
-  }
-
-  // Memory offsets handling
-  if (inst->use_disp) {
-    code[(*pos)++] = inst->displacement & 0xFF;
   }
 
   // Immediate values handling
