@@ -30,7 +30,7 @@ static void emit_attribution(unsigned char code[], int* pos, Operand* dest, Oper
 static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* dest, Operand* lhs, char op, Operand* rhs);
 static void emit_cmp(unsigned char code[], int* pos, Operand* op);
 static void emit_near_jump(unsigned char code[], int* pos);
-static void emit_epilogue(unsigned char code[], int* pos);
+static inline void emit_epilogue(unsigned char code[], int* pos);
 static int get_hardware_reg_index(char type, int idx);
 
 typedef enum {
@@ -334,7 +334,7 @@ static void emit_return_value(unsigned char code[], int* pos, Operand* returnSym
 /**
  * Undoes the current stack frame: emits leave and ret
  */
-static void emit_epilogue(unsigned char code[], int* pos) {
+static inline void emit_epilogue(unsigned char code[], int* pos) {
   code[*pos] = OP_LEAVE;
   (*pos)++;
 
