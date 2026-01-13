@@ -15,28 +15,20 @@
  */
 char sbasLink(unsigned char* code, LineTable* lt, RelocationTable* rt, int* relocCount) {
   for (int i = 0; i < *relocCount; i++) {
-    /**
-     * The current plead for writing a jump at `offsetToPatch` to `targetLine`
-     */
-    RelocationTable relocationRequest = rt[i];
-    int offsetToPatch = relocationRequest.offset;
-    const unsigned targetLine = relocationRequest.targetLine;
-    const unsigned targetOffset = relocationRequest.targetOffset;
-
-    // Look up the target in the LineTable
-    LineTable relocationTarget = lt[targetLine];
-    const char lineExists = relocationTarget.line == 0 ? 0 : 1;
-    if (!lineExists && !targetOffset) {
-      compilationError("sbasLink: jump target is not an executable line", targetLine);
-      return -1;
+    const unsigned char targetIsLine = rt[i].isLine == 1 ? 1 : 0;
+    const int target = rt[i].target;
+    const int sourceOffset = rt[i].offset;
+    
+    int targetOffset = 0;
+    if (targetIsLine) { // destination offset is the one corresponding to the wanted line
+      targetOffset = lt[target].offset;
+    } else {  // destination offset is the `target` field itself passed by caller
+      targetOffset = target;
     }
 
-    int targetAddress = 0;
-    if (targetLine) {
-      // the target line's offset in the buffer is the address we want to jump to
-      targetAddress = relocationTarget.offset;
-    } else {
-      targetAddress = targetOffset;
+    if (!targetOffset) {
+      compilationError("sbasLink: jump target is not an executable line", -1);
+      return -1;
     }
 
     /**
@@ -54,13 +46,13 @@ char sbasLink(unsigned char* code, LineTable* lt, RelocationTable* rt, int* relo
      * In particular, we reach at the "formula":
      * `nextInstructionAddress = offsetToPatch + 4`
      */
-    const int nextInstructionAddress = offsetToPatch + 4;
+    const int nextInstructionAddress = sourceOffset + 4;
 
     /**
-     * Suppose your code "wants to" jump to a `targetAddress` - here, the
+     * Suppose your code "wants to" jump to a `targetOffset` - here, the
      * target line's offset in the buffer.
      *
-     * However, the CPU cannot just "go to" `targetAddress`.
+     * However, the CPU cannot just "go to" `targetOffset`.
      *
      * Why? Once it "understands our intent" to deviate control flow
      * somewhere else, i.e. once it fully decodes the current (jump) instruction,
@@ -69,18 +61,18 @@ char sbasLink(unsigned char* code, LineTable* lt, RelocationTable* rt, int* relo
      *
      * Now the IP is at `nextInstructionAddress`, and since a jump is insomuch
      * a matter of incrementing or decrementing it, the CPU doesn't "talk" in
-     * absolute regarding `targetAddress`. Rather it "asks" how can it get
-     * to the user's desired `targetAddress`
+     * absolute regarding `targetOffset`. Rather it "asks" how can it get
+     * to the user's desired `targetOffset`
      * given that it's at `nextInstructionAddress`?
      *
      * So what we are really dealing with here is:
-     * `targetAddress = nextInstructionAddress + someValue`
+     * `targetOffset = nextInstructionAddress + someValue`
      *
      * You just have to supply `someValue` to the CPU
      * so it goes where you want to :)
      *
      * Rearranging the formula above:
-     * `someValue = targetAddress - nextInstructionAddress`
+     * `someValue = targetOffset - nextInstructionAddress`
      *
      * Obviously, this value can be negative, allowing the instruction pointer to
      * go "back and forth" in the program's text section. For 32-bit integers,
@@ -109,11 +101,11 @@ char sbasLink(unsigned char* code, LineTable* lt, RelocationTable* rt, int* relo
      * between two signed integers (32 bit wide), we call it `rel32`, thus
      * arriving at:
      *
-     * `rel32 = targetAddress - nextInstructionAddress`
+     * `rel32 = targetOffset - nextInstructionAddress`
      */
-    const int rel32 = targetAddress - nextInstructionAddress;
+    const int rel32 = targetOffset - nextInstructionAddress;
 
-    emitIntegerInHex(code, &offsetToPatch, rel32);
+    emitIntegerInHex(code, &sourceOffset, rel32);
   }
   return 0;
 }

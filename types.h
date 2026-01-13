@@ -9,30 +9,20 @@
 typedef int (*funcp)();
 
 /**
- * Maps each line in a SBas file to its offset in the machine code buffer
- *
- * Fields:
- * - `line`: line in the text file (1-indexed)
- * - `offset`: start of the its instructions in the machine code buffer
+ * Maps each `line` in a SBas file to its `offset` in the machine code buffer
  */
 typedef struct {
-  unsigned line;
-  int offset;
+  unsigned line;  // line in the text file (1-indexed)
+  int offset;     // index of the start of the line's instruction bytes in the machine code buffer
 } LineTable;
 
 /**
- * An entry for a linking step fixup.
- * Maps a desired line OR offset to jump to to a source/requesting offset in the buffer
- *
- * Fields:
- * - `targetLine`: line whose relative offset to the next instruction should be filled in
- * - `targetOffset`: desired offset to jump to
- * - `offset`: index 0 of the 4 zero placeholder bytes that should be patched
+ * Maps a desired `target` line OR offset to jump to to a requesting `offset` in the buffer
  */
 typedef struct {
-  unsigned targetLine;
-  int targetOffset;
-  int offset;
+  unsigned char isLine;  // whether the jump target is a line in SBas source file or an offset in the byte buffer
+  int target;            // line or offset to jump to
+  int offset;            // first byte of the placeholder bytes to be patched
 } RelocationTable;
 
 /**

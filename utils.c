@@ -123,9 +123,9 @@ void printLineTable(LineTable* lt, int lines) {
  */
 void printRelocationTable(RelocationTable* rt, int relocCount) {
   printf("----- START RELOCATION TABLE -----\n");
-  printf("%-20s %s\n", "PATCH OFFSET (dec)", "TARGET LINE");
+  printf("%-20s %s\n", "PATCH OFFSET (dec)", "TARGET");
   for (int i = 0; i < relocCount; i++) {
-    printf("%-20d %d\n", rt[i].offset, rt[i].targetLine);
+    printf("%-20d %d\n", rt[i].offset, rt[i].target);
   }
   printf("----- END RELOCATION TABLE -----\n");
 }

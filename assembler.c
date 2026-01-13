@@ -153,7 +153,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
 
           // request relocation to jump to `cleanupOffset` during linking
           rt[*relocCount].offset = pos;
-          rt[*relocCount].targetOffset = cleanupOffset;
+          rt[*relocCount].target = cleanupOffset;
           (*relocCount)++;
 
           // Emit 4-byte placeholder for 32-bit offset
@@ -240,7 +240,8 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
         emit_near_jump(code, &pos);
 
         // Mark current line to be resolved in patching step
-        rt[*relocCount].targetLine = targetLine;
+        rt[*relocCount].isLine = 1;
+        rt[*relocCount].target = targetLine;
         rt[*relocCount].offset = pos;
         (*relocCount)++;
 
