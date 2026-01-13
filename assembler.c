@@ -52,14 +52,14 @@ typedef enum {
 } Opcode;
 
 /**
- * Defines the two addressing modes used by the SBas compiler
- * that go into the `mod` field of the ModRM byte i.e.
- * bits 7 and 6 of the latter
+ * Represents some of the addressing modes used by x86-64
+ * that go into the `mod` field (bits 7 and 6) of the ModRM byte
  */
 typedef enum {
   // (11) Both operands are registers. Used for variables
   MOD_REGISTER_DIRECT = 3,
 
+  // NOTE: currently unused. SBas keeps all variables in registers.
   // (01) Memory access: (register + signed byte). Used for stack frame offsets
   MOD_REG_PLUS_DISP8 = 1,
 } Mod;
