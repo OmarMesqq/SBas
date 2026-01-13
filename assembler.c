@@ -582,8 +582,8 @@ static void emit_near_jump(unsigned char code[], int* pos) {
 /**
  * Maps SBas variables and parameters to x86's FULL hardware index (0-15).
  *
- * - Locals ('v'): v1(RBX), v2(R12), v3(R13), v4(R14), v5(R15)
- * - Params ('p'): p1(EDI), p2(ESI), p3(EDX)
+ * - Locals ('v'): v1(RCX), v2(R8), v3(R9), v4(R10), v5(R11)
+ * - Params ('p'): p1(RDI), p2(RSI), p3(RDX)
  */
 static int get_hardware_reg_index(char type, int idx) {
   if (type == 'v') {
