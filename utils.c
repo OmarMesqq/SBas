@@ -132,7 +132,13 @@ void printRelocationTable(RelocationTable* rt, int relocCount) {
 
 /**
  * Prints a SBas compilation error `msg`, found at a given `line`, to `stderr`
+ * If `line` is less than or equal to 0, the generic `msg` is printed
+ * without line information.
  */
 void compilationError(const char* msg, int line) {
-  fprintf(stderr, "%s[line %d in .sbas file]: %s%s\n", RED, line, msg, RESET_COLOR);
+  if (line <= 0) {
+    fprintf(stderr, "%s%s%s\n", RED, msg, RESET_COLOR);
+  } else {
+    fprintf(stderr, "%s[line %d in .sbas file]: %s%s\n", RED, line, msg, RESET_COLOR);
+  }
 }
