@@ -17,7 +17,7 @@ char sbasLink(unsigned char* code, LineTable* lt, RelocationTable* rt, int* relo
   for (int i = 0; i < *relocCount; i++) {
     const unsigned char targetIsLine = rt[i].isLine == 1 ? 1 : 0;
     const int target = rt[i].target;
-    const int sourceOffset = rt[i].offset;
+    int sourceOffset = rt[i].offset;
     
     int targetOffset = 0;
     if (targetIsLine) { // destination offset is the one corresponding to the wanted line
