@@ -16,14 +16,13 @@
 char sbasLink(unsigned char* code, LineTable* lt, RelocationTable* rt, int* relocCount) {
   for (int i = 0; i < *relocCount; i++) {
     const unsigned char targetIsLine = rt[i].isLine == 1 ? 1 : 0;
-    const int target = rt[i].target;
-    int sourceOffset = rt[i].offset;
-    
+    int sourceOffset = rt[i].sourceOffset;
+
     int targetOffset = 0;
-    if (targetIsLine) { // destination offset is the one corresponding to the wanted line
-      targetOffset = lt[target].offset;
-    } else {  // destination offset is the `target` field itself passed by caller
-      targetOffset = target;
+    if (targetIsLine) {  // destination offset is the one corresponding to the wanted line
+      targetOffset = lt[rt[i].target.targetLine].offset;
+    } else {  // destination offset is the `targetOffset` passed by caller
+      targetOffset = rt[i].target.targetOffset;
     }
 
     if (!targetOffset) {

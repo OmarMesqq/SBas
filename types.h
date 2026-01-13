@@ -17,12 +17,16 @@ typedef struct {
 } LineTable;
 
 /**
- * Maps a desired `target` line OR offset to jump to to a requesting `offset` in the buffer
+ * Maps a `sourceOffset` in the buffer requesting a jump
+ * to a desired `targetLine` or `targetOffset`
  */
 typedef struct {
-  unsigned char isLine;  // whether the jump target is a line in SBas source file or an offset in the byte buffer
-  int target;            // line or offset to jump to
-  int offset;            // first byte of the placeholder bytes to be patched
+  unsigned char isLine;  // whether `target` is a line in SBas source file or an offset in the byte buffer
+  union {
+    unsigned targetLine;
+    int targetOffset;
+  } target;
+  int sourceOffset;  // first byte of the placeholder bytes to be patched
 } RelocationTable;
 
 /**

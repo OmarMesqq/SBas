@@ -124,9 +124,13 @@ void printLineTable(LineTable* lt, int lines) {
  */
 void printRelocationTable(RelocationTable* rt, int relocCount) {
   printf("----- START RELOCATION TABLE -----\n");
-  printf("%-20s %s\n", "PATCH OFFSET (dec)", "TARGET");
+  printf("%-20s %s\n", "PATCH OFFSET (dec)", "TARGET (LINE/OFFSET)");
   for (int i = 0; i < relocCount; i++) {
-    printf("%-20d %d\n", rt[i].offset, rt[i].target);
+    if (rt[i].isLine) {
+      printf("%-20d %u\n", rt[i].sourceOffset, rt[i].target.targetLine);
+    } else {
+      printf("%-20d %d\n", rt[i].sourceOffset, rt[i].target.targetOffset);
+    }
   }
   printf("----- END RELOCATION TABLE -----\n");
 }
