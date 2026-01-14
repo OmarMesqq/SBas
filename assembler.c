@@ -47,8 +47,8 @@ typedef enum {
   OP_IMUL_RM_BY_INT_STORE_IN_REG = 0x69,                // multiply r/m 32/64 by imm32 and store in r32/64
   OP_JMP_REL32 = 0xE9,                                  // unconditional jump to 32-bit offset
   OP_JLE_REL32 = 0x0F << 8 | 0x8E,                      // jump if less or equal to 32-bit offset
-  OP_LEAVE = 0xc9,                                      // movq %rbp, %rsp ; popq %rbp
-  OP_RET = 0xc3,                                        // set %rip to address on top of stack, usually placed there by a `call`
+  OP_LEAVE = 0xC9,                                      // movq %rbp, %rsp ; popq %rbp
+  OP_RET = 0xC3,                                        // set %rip to address on top of stack, usually placed there by a `call`
 } Opcode;
 
 /**

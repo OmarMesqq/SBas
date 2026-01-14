@@ -48,6 +48,11 @@ int main(int argc, char* argv[]) {
       p3 = stringToInt(argv[4]);
       res = sbasFunction(p1, p2, p3);
       break;
+    default:
+      fprintf(stderr, "unexpected amount of CLI args. argc: %d\n", argc);
+      sbasCleanup(sbasFunction);
+      fclose(fp);
+      return -1;;
   }
 
   printf("SBas function at %s returned %d\n", filename, res);

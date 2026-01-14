@@ -238,8 +238,8 @@ static void run_test_parse_full_grammar() {
 }
 
 /**
- * Compiles an SBas file that loads values to callee-saved registers.
- * It is expected that these values are restored at the function epilogue.
+ * Tests whether a SBas function preserves the values
+ * of callee-saved registers pursuant to the System V ABI.
  */
 static void run_test_callee_saveds() {
   FILE* sbasFile;
