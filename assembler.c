@@ -111,6 +111,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
   char errorMsgBuffer[BUFFER_SIZE] = {0};  // a compilation error message
   int pos = 0;                             // byte position in the buffer
   char retFound = 0;                       // turns on when the first `'ret'` is found
+  unsigned retCount = 0;                   // amount of 'ret' statements found
   int cleanupOffset = 0;                   // position in buffer where the stack cleanup routine starts
 
   emit_prologue(code, &pos);
@@ -142,9 +143,13 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
         }
 
         emit_return(code, &pos, &returnSymbol, &retFound, &cleanupOffset);
+        ++retCount;
 
-        // if a 'ret' has already been found, further ones will just jump to the stack cleanup address
-        if (retFound) {
+        /**
+         * if more than one 'ret' statement is found, further ones 
+         * will just jump to the epilogue offset
+         */
+        if (retFound && (retCount > 1)) {
           code[pos++] = OP_JMP_REL32;
 
           // request relocation to jump to `cleanupOffset` during linking
