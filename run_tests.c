@@ -29,13 +29,13 @@ int main(void) {
   run_test("test_files/return_variable.sbas", "return variable", 0, NULL, NULL,
            NULL, 5);
 
-  run_test("test_files/assign_constant.sbas", "constant attributions", 0, NULL,
+  run_test("test_files/assign_constant.sbas", "constant assignment", 0, NULL,
            NULL, NULL, -1004);
 
   arg1 = 255;
   arg2 = 0;
   arg3 = 327;
-  run_test("test_files/assign_parameters.sbas", "parameter attributions", 3,
+  run_test("test_files/assign_parameters.sbas", "parameter assignment", 3,
            &arg1, &arg2, &arg3, 255);
 
   run_test("test_files/all_arithmetic_cases.sbas", "all arithmetic operations",
@@ -192,11 +192,11 @@ int main(void) {
   run_failing_test("test_files/incorrect/wrong_return.sbas", "Bad return", 0,
                    NULL, NULL, NULL);
   run_failing_test("test_files/incorrect/bad_att_operation.sbas",
-                   "Misformed attribution/arithmetic op.", 0, NULL, NULL, NULL);
+                   "Misformed  assignment/arithmetic op.", 0, NULL, NULL, NULL);
   run_failing_test("test_files/incorrect/exceeding_locals.sbas",
                    "Using more than 5 locals", 0, NULL, NULL, NULL);
   run_failing_test("test_files/incorrect/bad_attribution.sbas",
-                   "Bad attribution", 0, NULL, NULL, NULL);
+                   "Bad  assignment", 0, NULL, NULL, NULL);
   run_failing_test("test_files/incorrect/bad_arithmetic_op.sbas",
                    "Bad arithmetic operation", 0, NULL, NULL, NULL);
   run_failing_test("test_files/incorrect/unsupported_arithmetic_operation.sbas",

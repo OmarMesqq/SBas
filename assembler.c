@@ -26,7 +26,7 @@ static void emit_instruction(unsigned char code[], int* pos, Instruction* inst);
 static void emit_prologue(unsigned char code[], int* pos);
 static void emit_return_value(unsigned char code[], int* pos, Operand* returnSymbol);
 static void emit_return(unsigned char code[], int* pos, Operand* returnSymbol, char* retFound, int* cleanupOffset);
-static void emit_attribution(unsigned char code[], int* pos, Operand* dest, Operand* source);
+static void emit_assignment(unsigned char code[], int* pos, Operand* dest, Operand* source);
 static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* dest, Operand* lhs, char op, Operand* rhs);
 static void emit_cmp(unsigned char code[], int* pos, Operand* op);
 static void emit_near_jump(unsigned char code[], int* pos);
@@ -167,12 +167,12 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
 
         break;
       }
-      case 'v': { /* attribution and arithmetic operation */
+      case 'v': { /* assignment and arithmetic operation */
         int destId;
         char separator;
 
         if (sscanf(lineBuffer, "v%d %c", &destId, &separator) != 2) {
-          compilationError("sbasAssemble: invalid command: expected attribution (vX: varpc) or arithmetic operation (vX = varc op varc)", line);
+          compilationError("sbasAssemble: invalid command: expected assignment (vX: varpc) or arithmetic operation (vX = varc op varc)", line);
           return -1;
         }
 
@@ -183,7 +183,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
         }
 
         if (separator != ':' && separator != '=') {
-          snprintf(errorMsgBuffer, BUFFER_SIZE, "sbasAssemble: invalid operator %c. Only attribution (:) and arithmetic operation (=) are supported.", separator);
+          snprintf(errorMsgBuffer, BUFFER_SIZE, "sbasAssemble: invalid operator %c. Only assignment (:) and arithmetic operation (=) are supported.", separator);
           compilationError(errorMsgBuffer, line);
           return -1;
         }
@@ -192,16 +192,16 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
             .type = firstChar,
             .value = destId,
         };
-        // attribution
+        // assignment
         if (separator == ':') {
           Operand source = {0};
 
           if (sscanf(lineBuffer, "v%d : %c%d", &destId, &source.type, &source.value) != 3) {
-            compilationError("sbasAssemble: invalid attribution: expected 'vX: <vX|pX|$num>'", line);
+            compilationError("sbasAssemble: invalid assignment: expected 'vX: <vX|pX|$num>'", line);
             return -1;
           }
 
-          emit_attribution(code, &pos, &dest, &source);
+          emit_assignment(code, &pos, &dest, &source);
         }
         // arithmetic operation
         else if (separator == '=') {
@@ -372,11 +372,11 @@ static void emit_return(unsigned char code[], int* pos, Operand* returnSymbol, c
 }
 
 /**
- * Emits machine code for a SBas attribution:
+ * Emits machine code for a SBas assignment:
  * vX: <vX|pX|$num>
  */
-static void emit_attribution(unsigned char code[], int* pos, Operand* dest, Operand* source) {
-  Instruction attribution = {0};
+static void emit_assignment(unsigned char code[], int* pos, Operand* dest, Operand* source) {
+  Instruction assignment = {0};
 
   int dstRegCode = get_hardware_reg_index(dest->type, dest->value);
   if (dstRegCode == -1) return;
@@ -386,31 +386,31 @@ static void emit_attribution(unsigned char code[], int* pos, Operand* dest, Oper
     return;
   }
 
-  // var to var attribution (vX : vY) and param to var attribution (vX : pY)
+  // var to var assignment (vX : vY) and param to var assignment (vX : pY)
   if (source->type == 'v' || source->type == 'p') {
     int srcRegCode = get_hardware_reg_index(source->type, source->value);
-    attribution.opcode = OP_MOV_REG_TO_RM;
+    assignment.opcode = OP_MOV_REG_TO_RM;
 
-    attribution.use_modrm = 1;
-    attribution.mod = MOD_REGISTER_DIRECT;
-    attribution.reg = srcRegCode;
-    attribution.rm = dstRegCode;
+    assignment.use_modrm = 1;
+    assignment.mod = MOD_REGISTER_DIRECT;
+    assignment.reg = srcRegCode;
+    assignment.rm = dstRegCode;
   }
-  // imm to var attribution (vX: $snum)
+  // imm to var assignment (vX: $snum)
   else if (source->type == '$') {
-    attribution.opcode = OP_MOV_IMM_TO_RD;
+    assignment.opcode = OP_MOV_IMM_TO_RD;
 
-    attribution.is_imm_mov = 1;
-    attribution.imm_mov_rd = dstRegCode;
+    assignment.is_imm_mov = 1;
+    assignment.imm_mov_rd = dstRegCode;
 
-    attribution.use_imm = 1;
-    attribution.imm_size = 4;
-    attribution.immediate = source->value;
+    assignment.use_imm = 1;
+    assignment.imm_size = 4;
+    assignment.immediate = source->value;
   } else {
-    fprintf(stderr, "emit_attribution: invalid source for variable attribution: %c\n", source->type);
+    fprintf(stderr, "emit_assignment: invalid source for variable assignment: %c\n", source->type);
     return;
   }
-  emit_instruction(code, pos, &attribution);
+  emit_instruction(code, pos, &assignment);
 }
 
 /**
@@ -427,7 +427,7 @@ static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* d
 
   /**
    * First instruction of an arithmetic operation:
-   * mov <leftOperand>, <attributedVar>
+   * mov <leftOperand>, <assignedVar>
    */
   Instruction mov = {0};
 
@@ -466,7 +466,7 @@ static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* d
 
   /**
    * Second instruction of an arithmetic operation:
-   * <operation> <rightOperand>, <attributedVar>
+   * <operation> <rightOperand>, <assignedVar>
    */
   Instruction arithmeticOperation = {0};
   arithmeticOperation.use_modrm = 1;

@@ -9,14 +9,14 @@ After successful compilation, the mapped memory region is W^X protected,
 preventing unauthorized and accidental writes to it.
 
 ## Syntax
-### Variables and attribution
+### Variables and assignment
 SBas features exactly five local variables named `v1` through `v5`:
 ```
 var := <v1 | v2 | v3 | v4 | v5>
 ```
-These can be attributed values with the following syntax:
+These can be assigned values with the following syntax:
 ```
-att:= var : <pY | var | $snum>
+assign:= var : <pY | var | $snum>
 ```
 
 where:
