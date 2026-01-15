@@ -381,7 +381,8 @@ static void emit_assignment(unsigned char code[], int* pos, Operand* dest, Opera
   int dstRegCode = get_hardware_reg_index(dest->type, dest->value);
   if (dstRegCode == -1) return;
 
-  // Peephole optimization? Only emit mov if Source is different from Destination
+  // OPTIMIZATION: Dead Code elimination. 
+  // Only emit mov if Source is different from Destination
   if (source->type == 'v' && (source->value == dest->value)) {
     return;
   }
@@ -434,7 +435,8 @@ static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* d
   int dstRegCode = get_hardware_reg_index(dest->type, dest->value);
   if (dstRegCode == -1) return;
 
-  // Peephole optimization? Only emit mov if LHS is different from Destination
+  // OPTIMIZATION: Dead Code elimination.
+  // Only emit mov if LHS is different from Destination
   const char isRedundantMove = (lhs->type == 'v' && (lhs->value == dest->value));
 
   if (!isRedundantMove) {
@@ -502,11 +504,20 @@ static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* d
     arithmeticOperation.immediate = rhs->value;
 
     /**
-     * A tiny optimization:
-     * if the immediate fits in a byte, use the appropriate instruction
-     * emitting only 3 bytes: opcode, ModRM, and imm.
-     * otherwise use the int one, emitting 6:
-     * opcode, ModRM, imm, imm, imm, imm
+     * OPTIMIZATION: Variable-Length Instruction Selection.
+     * 
+     * x86-64 is CISC and has instructions of different sizes,
+     * yet semantically equivalent.
+     * 
+     * This code picks a shorter instruction if the RHS of the expression
+     * fits in the range of a `signed char`, emitting
+     * only 3 bytes instead of 6 - cutting code size by half.
+     * 
+     * For small RHS values the following bytes are emitted:
+     * - opcode, ModRM, imm.
+     * 
+     * For larger ones the byte sequence shall be:
+     * - opcode, ModRM, imm, imm, imm, imm
      */
     int fitsInByte = (rhs->value >= -128 && rhs->value <= 127);
     arithmeticOperation.imm_size = fitsInByte ? 1 : 4;
