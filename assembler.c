@@ -583,11 +583,13 @@ static void emit_cmp(unsigned char code[], int* pos, Operand* op) {
 
   Instruction cmp = {0};
   cmp.opcode = OP_IMM8_ARITHM_OP;
-  cmp.isCmp = 1;
   cmp.use_modrm = 1;
   cmp.mod = MOD_REGISTER_DIRECT;
   cmp.reg = EXT_CMP;
   cmp.rm = regCode;
+  cmp.use_imm = 1;
+  cmp.immediate = 0;
+  cmp.imm_size = 1;
 
   emit_instruction(code, pos, &cmp);
 }
@@ -658,7 +660,8 @@ static int get_hardware_reg_index(char type, int idx) {
  * Emits an x86-64 `Instruction` at offset `pos` in buffer `code`.
  */
 static void emit_instruction(unsigned char code[], int* pos, Instruction* inst) {
-  /** The REX prefix byte
+  /**
+   * The REX prefix byte
    * top 4 bits are fixed: `0100`
    * bottom 4 are the bits W, R, X, and B
    * - W extends instruction to 64 bits
@@ -670,30 +673,30 @@ static void emit_instruction(unsigned char code[], int* pos, Instruction* inst) 
 
   // REX.W: Promotes the instruction to 64-bit width
   if (inst->is_64bit) {
-    rex |= 0x08;
+    rex |= 0x08;  // 1000
     needs_rex = 1;
   }
 
   /**
-   * `mov $imm, reg` (short form) and `cmp $imm, reg` instructions
+   * `mov $imm, reg` (short form) instructions
    * only need REX.B as their sources aren't registers.
    */
-  if (inst->is_imm_mov || inst->isCmp) {
+  if (inst->is_imm_mov) {
     // REX.B: Extension for the `r/m` field (destination)
-    if (inst->imm_mov_rd > MAX_LEGACY_REG_IDX || inst->rm > MAX_LEGACY_REG_IDX) {
-      rex |= 0x01;
+    if (inst->imm_mov_rd > MAX_LEGACY_REG_IDX) {
+      rex |= 0x01;  // 0001
       needs_rex = 1;
     }
   } else {
     // REX.R: Extension for the `reg` field (source)
     if (inst->use_modrm && inst->reg > MAX_LEGACY_REG_IDX) {
-      rex |= 0x04;
+      rex |= 0x04;  // 0100
       needs_rex = 1;
     }
 
     // REX.B: Extension for the `r/m` field (destination)
     if (inst->use_modrm && inst->rm > MAX_LEGACY_REG_IDX) {
-      rex |= 0x01;
+      rex |= 0x01;  // 0001
       needs_rex = 1;
     }
   }
@@ -735,10 +738,5 @@ static void emit_instruction(unsigned char code[], int* pos, Instruction* inst) 
     } else {
       code[(*pos)++] = inst->immediate & 0xFF;
     }
-  }
-
-  // The only conditional jump is `iflez`, which checks against zero, so hardcode it here
-  if (inst->isCmp) {
-    code[(*pos)++] = 0;
   }
 }

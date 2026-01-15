@@ -94,12 +94,7 @@ typedef struct {
    * The register ID to be added to the base opcode (for `is_imm_mov`).
    */
   int imm_mov_rd;
-
-  /**
-   * Treats the instruction to be generated as a comparison between values.
-   * Used for conditional jumps.
-   */
-  unsigned char isCmp;
+  
 } Instruction;
 
 #endif
