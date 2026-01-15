@@ -419,7 +419,19 @@ static void emit_assignment(unsigned char code[], int* pos, Operand* dest, Opera
  * vX = <vX | $num> op <vX | $num>
  */
 static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* dest, Operand* lhs, char op, Operand* rhs) {
-  // For commutative operations, we swap the operands so we keep a single logic path
+  /**
+   * CANONICALIZATION:
+   * The compiler converts the expression which has more than one possible
+   * representation to a "standard"/canonical form.
+   * 
+   * When the arithmetic operation is commutative, the operands are safely
+   * swapped and still achieve the same result. The canon form just
+   * simplifies the backend's logic and reduces code duplication.
+   * 
+   * We prefer the Constant ($) on the Right-Hand Side (RHS) because
+   * x86-64 instructions typically support "Op Register, Immediate"
+   * but not "Op Immediate, Register".
+   */
   if ((op == '+' || op == '*') && lhs->type == '$' && rhs->type == 'v') {
     Operand* temp = lhs;
     lhs = rhs;
