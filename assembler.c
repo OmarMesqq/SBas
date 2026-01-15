@@ -6,6 +6,16 @@
 #include "utils.h"
 
 #define BUFFER_SIZE 128  // length of a parsed line and of an error message
+/**
+ * The original x86 (IA-32) used 3 bits to identify a register,
+ * limiting the number of registers to 2^3=8. Because of this,
+ * the "OG" registers are %rax (index 0) through %rdi (index 7).
+ *
+ * When Intel/AMD doubled the amount of registers, a "fourth" bit
+ * was necessary to access them. These registers are called "extended"
+ * and the "fourth" bit is inside the REX byte
+ */
+#define MAX_LEGACY_REG_IDX 7
 
 /**
  * A SBas operand such as:
@@ -645,8 +655,7 @@ static int get_hardware_reg_index(char type, int idx) {
 }
 
 /**
- * Emits an x86-64 instruction at offset `pos` in buffer `code`.
- * Expects the already filled out `Instruction` struct "form".
+ * Emits an x86-64 `Instruction` at offset `pos` in buffer `code`.
  */
 static void emit_instruction(unsigned char code[], int* pos, Instruction* inst) {
   /** The REX prefix byte
@@ -659,37 +668,31 @@ static void emit_instruction(unsigned char code[], int* pos, Instruction* inst) 
   unsigned char rex = 0x40;
   char needs_rex = 0;
 
-  // REX.W: promotes the instruction to 64-bit width
+  // REX.W: Promotes the instruction to 64-bit width
   if (inst->is_64bit) {
     rex |= 0x08;
     needs_rex = 1;
   }
 
   /**
-   * `mov $imm, reg` and `cmp $0, reg` instructions
-   * eventually need only REX.B as its destinations
-   * aren't registers and the instructions default to
-   * 32-bit mode
+   * `mov $imm, reg` (short form) and `cmp $imm, reg` instructions
+   * only need REX.B as their sources aren't registers.
    */
   if (inst->is_imm_mov || inst->isCmp) {
-    // the only scenario which REX.B is needed
-    // is when accessing extended registers/
-    // those that have IDs greater than seven
-    if (inst->imm_mov_rd > 7 || inst->rm > 7) {
+    // REX.B: Extension for the `r/m` field (destination)
+    if (inst->imm_mov_rd > MAX_LEGACY_REG_IDX || inst->rm > MAX_LEGACY_REG_IDX) {
       rex |= 0x01;
       needs_rex = 1;
     }
   } else {
     // REX.R: Extension for the `reg` field (source)
-    // used for registers of id 8-15
-    if (inst->use_modrm && inst->reg > 7) {
+    if (inst->use_modrm && inst->reg > MAX_LEGACY_REG_IDX) {
       rex |= 0x04;
       needs_rex = 1;
     }
 
     // REX.B: Extension for the `r/m` field (destination)
-    // used for registers of id 8-15
-    if (inst->use_modrm && inst->rm > 7) {
+    if (inst->use_modrm && inst->rm > MAX_LEGACY_REG_IDX) {
       rex |= 0x01;
       needs_rex = 1;
     }
