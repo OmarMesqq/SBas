@@ -146,7 +146,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
         ++retCount;
 
         /**
-         * if more than one 'ret' statement is found, further ones 
+         * if more than one 'ret' statement is found, further ones
          * will just jump to the epilogue offset
          */
         if (retFound && (retCount > 1)) {
@@ -381,7 +381,7 @@ static void emit_assignment(unsigned char code[], int* pos, Operand* dest, Opera
   int dstRegCode = get_hardware_reg_index(dest->type, dest->value);
   if (dstRegCode == -1) return;
 
-  // OPTIMIZATION: Dead Code elimination. 
+  // OPTIMIZATION: Dead Code elimination.
   // Only emit mov if Source is different from Destination
   if (source->type == 'v' && (source->value == dest->value)) {
     return;
@@ -423,11 +423,11 @@ static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* d
    * CANONICALIZATION:
    * The compiler converts the expression which has more than one possible
    * representation to a "standard"/canonical form.
-   * 
+   *
    * When the arithmetic operation is commutative, the operands are safely
    * swapped and still achieve the same result. The canon form just
    * simplifies the backend's logic and reduces code duplication.
-   * 
+   *
    * We prefer the Constant ($) on the Right-Hand Side (RHS) because
    * x86-64 instructions typically support "Op Register, Immediate"
    * but not "Op Immediate, Register".
@@ -517,17 +517,17 @@ static void emit_arithmetic_operation(unsigned char code[], int* pos, Operand* d
 
     /**
      * OPTIMIZATION: Variable-Length Instruction Selection.
-     * 
+     *
      * x86-64 is CISC and has instructions of different sizes,
      * yet semantically equivalent.
-     * 
+     *
      * This code picks a shorter instruction if the RHS of the expression
      * fits in the range of a `signed char`, emitting
      * only 3 bytes instead of 6 - cutting code size by half.
-     * 
+     *
      * For small RHS values the following bytes are emitted:
      * - opcode, ModRM, imm.
-     * 
+     *
      * For larger ones the byte sequence shall be:
      * - opcode, ModRM, imm, imm, imm, imm
      */
