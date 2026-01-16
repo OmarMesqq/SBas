@@ -1,6 +1,6 @@
 #include "linker.h"
 
-#include "utils.h"
+#include "libs/libcutilities/cutilities.h"
 
 /**
  * Receives a buffer written with machine code and patches jump offsets to
@@ -26,7 +26,7 @@ char sbasLink(unsigned char* code, LineTable* lt, RelocationTable* rt, int* relo
     }
 
     if (!targetOffset) {
-      compilationError("sbasLink: jump target is not an executable line", -1);
+      fprintf(stderr, "sbasLink: jump target is not an executable line!\n");
       return -1;
     }
 

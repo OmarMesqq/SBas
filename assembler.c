@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "config.h"
-#include "utils.h"
+#include "libs/libcutilities/cutilities.h"
 
 #define BUFFER_SIZE 128  // length of a parsed line and of an error message
 /**
@@ -42,6 +42,10 @@ static void emit_cmp(unsigned char code[], int* pos, Operand* op);
 static void emit_near_jump(unsigned char code[], int* pos);
 static inline void emit_epilogue(unsigned char code[], int* pos);
 static int get_hardware_reg_index(char type, int idx);
+
+void printLineTable(LineTable* lt, int lines);
+void printRelocationTable(RelocationTable* rt, int relocCount);
+void compilationError(const char* msg, int line);
 
 typedef enum {
   OP_SAVE_BASE_PTR_IN_STACK_FRAME = 0x55,               // pushq %rbp
@@ -739,4 +743,44 @@ static void emit_instruction(unsigned char code[], int* pos, Instruction* inst) 
       code[(*pos)++] = inst->immediate & 0xFF;
     }
   }
+}
+
+/**
+ * Dumps the `LineTable` corresponding to the currently compiled SBas file
+ * @param lt pointer to the `LineTable`
+ * @param lines amount of lines in the SBas file
+ */
+void printLineTable(LineTable* lt, int lines) {
+  printf("----- START LINE TABLE -----\n");
+  printf("%-14s %s\n", "LINE", "START OFFSET (dec)");
+  for (int i = 1; i < lines; i++) {
+    if (lt[i].line == 0) continue;
+    printf("%-14d %d\n", lt[i].line, lt[i].offset);
+  }
+  printf("----- END LINE TABLE -----\n");
+}
+
+/**
+ * Dumps the `RelocationTable` corresponding to the currently compiled SBas file
+ * @param rt pointer to the `RelocationTable`
+ * @param lines amount of lines in the SBas file
+ */
+void printRelocationTable(RelocationTable* rt, int relocCount) {
+  printf("----- START RELOCATION TABLE -----\n");
+  printf("%-20s %s\n", "PATCH OFFSET (dec)", "TARGET (LINE/OFFSET)");
+  for (int i = 0; i < relocCount; i++) {
+    if (rt[i].isLine) {
+      printf("%-20d %u\n", rt[i].sourceOffset, rt[i].target.targetLine);
+    } else {
+      printf("%-20d %d\n", rt[i].sourceOffset, rt[i].target.targetOffset);
+    }
+  }
+  printf("----- END RELOCATION TABLE -----\n");
+}
+
+/**
+ * Prints a SBas compilation error `msg`, found at a given `line`, to `stderr`
+ */
+void compilationError(const char* msg, int line) {
+  fprintf(stderr, "%s[line %d in .sbas file]: %s%s\n", RED, line, msg, RESET_COLOR);
 }

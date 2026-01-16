@@ -1,7 +1,7 @@
 #include <stdio.h>
 
+#include "libs/libcutilities/cutilities.h"
 #include "sbas.h"
-#include "utils.h"
 
 int main(int argc, char* argv[]) {
   if (argc < 2 || argc > 5) {
@@ -52,7 +52,8 @@ int main(int argc, char* argv[]) {
       fprintf(stderr, "unexpected amount of CLI args. argc: %d\n", argc);
       sbasCleanup(sbasFunction);
       fclose(fp);
-      return -1;;
+      return -1;
+      ;
   }
 
   printf("SBas function at %s returned %d\n", filename, res);

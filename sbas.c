@@ -8,7 +8,7 @@
 #include "config.h"
 #include "linker.h"
 #include "types.h"
-#include "utils.h"
+#include "libs/libcutilities/cutilities.h"
 
 #define MAX_CODE_SIZE 1024  // maximum bytes the buffer holds
 
