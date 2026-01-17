@@ -738,7 +738,7 @@ static void emit_instruction(unsigned char code[], int* pos, Instruction* inst) 
   // Immediate values handling
   if (inst->use_imm) {
     if (inst->imm_size == 4) {
-      emitIntegerInHex(code, pos, inst->immediate);
+      write_integer_le(code, pos, inst->immediate);
     } else {
       code[(*pos)++] = inst->immediate & 0xFF;
     }

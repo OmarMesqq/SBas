@@ -104,7 +104,7 @@ char sbasLink(unsigned char* code, LineTable* lt, RelocationTable* rt, int* relo
      */
     const int rel32 = targetOffset - nextInstructionAddress;
 
-    emitIntegerInHex(code, &sourceOffset, rel32);
+    write_integer_le(code, &sourceOffset, rel32);
   }
   return 0;
 }
