@@ -131,7 +131,7 @@ char sbasAssemble(unsigned char* code, FILE* f, LineTable* lt, RelocationTable* 
   emit_prologue(code, &pos);
 
   while (fgets(lineBuffer, sizeof(lineBuffer), f)) {
-    trimLeadingSpaces(lineBuffer);
+    trim_leading_spaces(lineBuffer);
     const char firstChar = lineBuffer[0];
 
     if (firstChar == ' ' || firstChar == '\n' || firstChar == '\0' || firstChar == '/') {
