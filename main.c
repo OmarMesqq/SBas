@@ -34,18 +34,18 @@ int main(int argc, char* argv[]) {
       res = sbasFunction();
       break;
     case 3:
-      p1 = string_to_int(argv[2]);
+      p1 = stoi(argv[2]);
       res = sbasFunction(p1);
       break;
     case 4:
-      p1 = string_to_int(argv[2]);
-      p2 = string_to_int(argv[3]);
+      p1 = stoi(argv[2]);
+      p2 = stoi(argv[3]);
       res = sbasFunction(p1, p2);
       break;
     case 5:
-      p1 = string_to_int(argv[2]);
-      p2 = string_to_int(argv[3]);
-      p3 = string_to_int(argv[4]);
+      p1 = stoi(argv[2]);
+      p2 = stoi(argv[3]);
+      p3 = stoi(argv[4]);
       res = sbasFunction(p1, p2, p3);
       break;
     default:
